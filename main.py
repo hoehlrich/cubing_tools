@@ -7,18 +7,66 @@ The deliverable was completed
 - The main two pages are completed (timer and tracking)
 - Still need to make labels dynamic
 - Tracking page is set up and ready to recieve time data (already formatted as a table)
+- Comments are sparse because a majority of gui code in python is just configuring widgets
 '''
 
-from json.decoder import JSONDecodeError
+import random
+
 import tkinter as tk
 from tkinter import *
 from tkinter import filedialog, messagebox
-import json
-from functools import partial
-import random
-from turtle import bgcolor
 
 import kociemba
+
+class Cubestring():
+    '''Cubestring Class'''
+
+    def __init__(self, random_valid=False):
+        self.cubestring = ''
+
+        if random_valid == True:
+            self.generate_random_valid_cubestring()
+    
+    def generate_random_valid_cubestring(self):
+        while True:
+            try:
+                # Generate intial cubestring
+                cubestring = ''.join(f'----{face}----' for face in ['U', 'R', 'F', 'D', 'L', 'B'])
+
+                # Generate a list of all non-center stickers
+                stickers = [face for i in range(8) for face in ['U', 'R', 'F', 'D', 'L', 'B']]
+
+                random.shuffle(stickers)
+
+                # Apply stickers
+                for sticker in stickers:
+                    cubestring = cubestring.replace('-', sticker, 1)
+                
+                print(cubestring)
+
+                print(kociemba.solve(cubestring))
+
+                break
+            except ValueError:
+                print('Invalid cubestring!\n')
+                pass
+            
+        print(kociemba.solve(cubestring))
+class Log():
+    '''Log Class'''
+
+    def __init__(self, name, template):
+        self.name = name
+        self.template = template
+        self.entries = []
+
+    def add_entry(self, *args):
+        try:
+            assert len(args) == len(self.template), 'entry must have the same length as the set template'
+
+            self.entries.append(args)
+        except AssertionError:
+            pass
 
 class App(tk.Tk):
     'App Class'
@@ -35,7 +83,7 @@ class App(tk.Tk):
         self.light_grey = '#D3D3D3'
         self.defaultbg = self.cget('bg')
 
-        # Initisalize main buttons (outside of mainframe)
+        # Initialize main buttons (outside of mainframe)
         self.init_main_buttons()
 
         # self.mainframe
@@ -137,9 +185,10 @@ class App(tk.Tk):
 def main():
     print(len(kociemba.solve('BLBFULLLFUDLURUDFUFBRRFRBURRLFDDDDFLDRDRLBLBUUFRBBDFUB').split(' ')))
 
-    app = App()
-    mainloop()
+    # app = App()
+    # mainloop()
 
+    cubestring = Cubestring(random_valid=True)
 
 if __name__ == '__main__':
     main()
