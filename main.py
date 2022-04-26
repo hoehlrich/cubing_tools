@@ -1,16 +1,8 @@
 # !/usr/bin/env
 # -*- coding: utf-8 -*-
 
-'''
-The deliverable was completed
-- A basic gui was created (adapted from a previous project)
-- The main two pages are completed (timer and tracking)
-- Still need to make labels dynamic
-- Tracking page is set up and ready to recieve time data (already formatted as a table)
-- Comments are sparse because a majority of gui code in python is just configuring widgets
-'''
-
 import random
+import copy
 
 import tkinter as tk
 from tkinter import *
@@ -28,30 +20,41 @@ class Cubestring():
             self.generate_random_valid_cubestring()
     
     def generate_random_valid_cubestring(self):
-        while True:
-            try:
-                # Generate intial cubestring
-                cubestring = ''.join(f'----{face}----' for face in ['U', 'R', 'F', 'D', 'L', 'B'])
+        faces = ['U', 'R', 'F', 'D', 'L', 'B']
 
-                # Generate a list of all non-center stickers
-                stickers = [face for i in range(8) for face in ['U', 'R', 'F', 'D', 'L', 'B']]
+        corners = {
+            'c1': [('U', 1), ('L', 3), ('B', 7)],
+            'c2': [('U', 3), ('R', 4), ('B', 9)],
+            'c3': [('U', 7), ('L', 9), ('F', 1)],
+            'c4': [('U', 9), ('R', 7), ('F', 3)],
+            'c5': [('D', 3), ('L', 1), ('B', 1)],
+            'c6': [('D', 1), ('R', 3), ('B', 3)],
+            'c7': [('D', 9), ('L', 7), ('F', 7)],
+            'c8': [('D', 7), ('R', 9), ('F', 9)]
+        }
 
-                random.shuffle(stickers)
+        edges = {
+            'e1': [('U', 2), ('B', 8)],
+            'e2': [('U', 4), ('L', 6)],
+            'e3': [('U', 6), ('R', 4)],
+            'e4': [('U', 8), ('F', 2)],
+            'e5': [('B', 4), ('L', 2)],
+            'e6': [('B', 6), ('R', 2)],
+            'e7': [('F', 4), ('L', 6)],
+            'e8': [('F', 6), ('R', 8)],
+            'e9': [('D', 2), ('B', 2)],
+            'e10': [('D', 4), ('R', 6)],
+            'e11': [('D', 6), ('L', 4)],
+            'e12': [('D', 8), ('F', 8)]
+        }
 
-                # Apply stickers
-                for sticker in stickers:
-                    cubestring = cubestring.replace('-', sticker, 1)
-                
-                print(cubestring)
+        cubestring = ''.join(f'____{face}_____' for face in faces)
 
-                print(kociemba.solve(cubestring))
+        for corner in corners:
+            pass
+        
+        print(cubestring)
 
-                break
-            except ValueError:
-                print('Invalid cubestring!\n')
-                pass
-            
-        print(kociemba.solve(cubestring))
 class Log():
     '''Log Class'''
 
@@ -183,12 +186,13 @@ class App(tk.Tk):
             messagebox.showerror('Import Error', 'Invalid File.')
 
 def main():
-    print(len(kociemba.solve('BLBFULLLFUDLURUDFUFBRRFRBURRLFDDDDFLDRDRLBLBUUFRBBDFUB').split(' ')))
+    # print(len(kociemba.solve('BLBFULLLFUDLURUDFUFBRRFRBURRLFDDDDFLDRDRLBLBUUFRBBDFUB').split(' ')))
 
     # app = App()
     # mainloop()
 
     cubestring = Cubestring(random_valid=True)
 
+  
 if __name__ == '__main__':
     main()
