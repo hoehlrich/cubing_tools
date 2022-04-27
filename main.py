@@ -1,14 +1,21 @@
 # !/usr/bin/env
 # -*- coding: utf-8 -*-
 
+'''
+- Deliverables not completed.
+- Will have deliverables for Milestone #2 done by calss on Wednesday
+- Issues generating a random valid state
+- Made cubestring viewer in google sheets... i guess thats an add-on
+'''
+
 import random
-import copy
+import time
 
 import tkinter as tk
 from tkinter import *
 from tkinter import filedialog, messagebox
 
-import kociemba
+import twophase.solver as sv
 
 class Cubestring():
     '''Cubestring Class'''
@@ -64,32 +71,32 @@ class Cubestring():
 
 
                 remaining_corners = list(corners.keys())
-                random.shuffle(remaining_corners)
+                # random.shuffle(remaining_corners)
 
                 # Assign corners to cubestring at random
                 for corner_pos in corners:
                     # Get chosen corner info and isolate sticker colors
-                    chosen_corner = corners[remaining_corners.pop()]
+                    chosen_corner = corners[remaining_corners.pop(0)]
                     corner_colors = [sticker[0] for sticker in chosen_corner]
 
-                    # Change permutation and orientation
+                    # Change orientation
                     random.shuffle(corner_colors)
 
                     # Assign the stickers
                     for i, sticker in enumerate(corners[corner_pos]):
                         face, num = sticker
-                        cubestring[faces[face] * 9 + num - 1] = corner_colors[i]
+                        cubestring[(faces[face] * 9) + num - 1] = corner_colors[i]
 
                 remaining_edges = list(edges.keys())
-                random.shuffle(remaining_edges)
+                # random.shuffle(remaining_edges)
 
                 # Assign edges to cubestring at random
                 for i, edge_pos in enumerate(edges):
                     # Get chosen edge info and isolate sticker colors
-                    chosen_edge = edges[remaining_edges.pop()]
+                    chosen_edge = edges[remaining_edges.pop(0)]
                     edge_colors = [sticker[0] for sticker in chosen_edge]
 
-                    # Change permutation and orientation
+                    # Change orientation
                     random.shuffle(edge_colors)
 
                     # Assign the stickers
@@ -100,21 +107,40 @@ class Cubestring():
 
                 str_cubestring = ''.join(sticker for sticker in cubestring)
                 
-                print(str_cubestring)
-                solve = kociemba.solve(str_cubestring)
+                print(cubestring)
+                solve = sv.solve(cubestring)
                 print(solve)
 
-                break
+                if 'Error' not in solve:
+                    break
+
             except ValueError:
                 pass
 
-class Log():
-    '''Log Class'''
+class TimeLog():
+    '''Log Class NOT COPMPLETED OR DUE'''
 
-    def __init__(self, name, template):
-        self.name = name
+    def __init__(self, template):
         self.template = template
         self.entries = []
+        self.times = []
+    
+    def submit_time(self, time):
+        self.times.append(time)
+        
+        # Calculate ao5 if there is enough data
+        if len(self.times) >= 5:
+            ao5 = round(sum(self.times[len(self.times)-5:])/5, 2)
+        else:
+            ao5 = '-.--'
+        
+        # Calculate ao12 if there is enough data
+        if len(self.times) >= 12:
+            ao12 = round(sum(self.times[len(self.times)-12:])/12, 2)
+        else:
+            ao12 = '-.--'
+
+        self.add_entry(len(self.entries)+1, time, ao5, ao12)
 
     def add_entry(self, *args):
         try:
@@ -125,7 +151,7 @@ class Log():
             pass
 
 class App(tk.Tk):
-    'App Class'
+    '''App Class'''
 
     def __init__(self):
         super().__init__()
@@ -172,11 +198,14 @@ class App(tk.Tk):
             btn.bind("<Enter>", self.on_enter)
             btn.bind("<Leave>", self.on_leave)
 
+        # Init TimeLog
+        self.log = TimeLog(['num', 'time', 'ao5', 'ao12'])
+
     def init_tracking_screen(self):
         self.init_blank_screen()
         
         # datalabels
-        datalabels = Frame(self.mainframe, width=500, height=50)
+        datalabels = Frame(self.mainframe, width=500, height=25)
         datalabels.pack(side=TOP)
 
         datalabels.columnconfigure(0, weight=1)
@@ -190,6 +219,38 @@ class App(tk.Tk):
         Label(datalabels, text='Time').grid(row=0, column=1, sticky=W, padx=5, pady=5)
         Label(datalabels, text='ao5').grid(row=0, column=2, sticky=W, padx=5, pady=5)
         Label(datalabels, text='ao12').grid(row=0, column=3, sticky=W, padx=5, pady=5)
+
+        # data entries
+        dataentries = Frame(self.mainframe, width=500, height=26)
+        dataentries.pack(side=TOP)
+
+        for i, entry in enumerate(self.log.entries):
+            if i % 2 == 0:
+                bg = self.light_grey
+            else:
+                bg = self.defaultbg
+
+            entry_frame = Frame(self.mainframe, width=500, height=22, bg=bg)
+
+            entry_frame.grid_propagate(False)
+
+            entry_frame.columnconfigure(0, weight=1)
+            entry_frame.columnconfigure(1, weight=2)
+            entry_frame.columnconfigure(2, weight=2)
+            entry_frame.columnconfigure(3, weight=2)
+
+            # Unpack entry
+            num, time, ao5, ao12 = entry
+
+            # Add entry data
+            Label(entry_frame, text=num, bg=bg, anchor=W, width=10).grid(row=0, column=0, sticky=W, padx=1, pady=1)
+            Label(entry_frame, text=time, bg=bg, anchor=W, width=10).grid(row=0, column=1, sticky=W, padx=1, pady=1)
+            Label(entry_frame, text=ao5, bg=bg, anchor=W, width=10).grid(row=0, column=2, sticky=W, padx=1, pady=1)
+            Label(entry_frame, text=ao12, bg=bg, anchor=W, width=10).grid(row=0, column=3, sticky=W, padx=1, pady=1)
+
+            # Pack entry frame
+            entry_frame.pack(side=TOP)
+
 
         # bottom buttons
         btn_frame = Frame(self.mainframe, width=300, height=24)
@@ -208,18 +269,61 @@ class App(tk.Tk):
 
         scramble.pack_propagate(False)
 
-        Label(scramble, text="R2 D' F' R' D' L' B2 D' F' R2 U2 B2 U' F2 R2 B2 R2 U' R2 U' L2", font=('Times New Roman', 15)).pack(side=TOP, padx=10, pady=10)
+        Label(scramble, text='just do a hand scramble you lazy end-user', font=('Times New Roman', 15)).pack(side=TOP, padx=10, pady=10)
 
         # timer
+        self.time = StringVar()
+        self.timer_started = False
+        self.timer_primed = False
+        
+
+        # Timer labels
         timer = Frame(self.mainframe, width=500, height=250)
         timer.pack(side=TOP)
 
         timer.pack_propagate(False)
-
-        Label(timer, text='0.00', font=('Times New Roman', 45)).pack(side=TOP)
+        
+        Label(timer, textvariable=self.time, font=('Times New Roman', 45)).pack(side=TOP)
         Label(timer, text='ao5: ', font = ('Times New Roman', 20)).pack(side=TOP)
         Label(timer, text='ao12: ', font = ('Times New Roman', 20)).pack(side=TOP)
 
+        self.time.set('0.00')
+        
+        # Key recognition
+        def keydown(e):
+            if e.char == ' ':
+                if self.timer_started:
+                    # Submit time to log
+                    print(f'You finished the solve in {time.time() - self.starttime}s')
+                    self.log.submit_time(round(time.time() - self.starttime, 2))
+
+                    self.timer_started = False
+                    self.timer_primed = False
+                elif self.timer_primed:
+                    pass
+                else:
+                    self.timer_primed = True
+
+        def keyup(e):
+            if e.char == ' ':
+                if self.timer_primed:
+                    self.timer_started = True
+                    print('timer started')
+                    self.start_timer()
+
+        # Key bindings
+        self.bind('<KeyPress>', keydown)
+        self.bind('<KeyRelease>', keyup)
+    
+    def start_timer(self):
+        self.starttime = time.time()
+
+        while True:
+            self.time.set(round(time.time() - self.starttime, 2))
+            self.update()
+            if self.timer_started == False:
+                break
+    
     def init_blank_screen(self):
         for widget in self.mainframe.winfo_children():
             widget.destroy()
@@ -239,12 +343,10 @@ class App(tk.Tk):
             messagebox.showerror('Import Error', 'Invalid File.')
 
 def main():
-    # print(len(kociemba.solve('BLBFULLLFUDLURUDFUFBRRFRBURRLFDDDDFLDRDRLBLBUUFRBBDFUB').split(' ')))
+    app = App()
+    mainloop()
 
-    # app = App()
-    # mainloop()
-
-    cubestring = Cubestring(random_valid=True)
+    # cubestring = Cubestring(random_valid=True)
 
   
 if __name__ == '__main__':
