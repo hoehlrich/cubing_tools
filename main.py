@@ -27,10 +27,10 @@ class Cubestring():
             'c2': [('U', 3), ('R', 1), ('B', 9)],
             'c3': [('U', 7), ('L', 9), ('F', 1)],
             'c4': [('U', 9), ('R', 7), ('F', 3)],
-            'c5': [('D', 3), ('L', 1), ('B', 1)],
-            'c6': [('D', 1), ('R', 3), ('B', 3)],
-            'c7': [('D', 9), ('L', 7), ('F', 7)],
-            'c8': [('D', 7), ('R', 9), ('F', 9)]
+            'c5': [('D', 1), ('R', 3), ('B', 3)],
+            'c6': [('D', 3), ('L', 1), ('B', 1)],
+            'c7': [('D', 7), ('R', 9), ('F', 9)],
+            'c8': [('D', 9), ('L', 7), ('F', 7)]
         }
 
         edges = {
@@ -100,7 +100,7 @@ class Cubestring():
 
                 str_cubestring = ''.join(sticker for sticker in cubestring)
                 
-                print(str_cubestring)
+                print(cubestring)
                 solve = kociemba.solve(str_cubestring)
                 print(solve)
 
