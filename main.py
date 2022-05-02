@@ -10,12 +10,49 @@
 
 import random
 import time
-
+import threading
+ 
 import tkinter as tk
 from tkinter import *
 from tkinter import filedialog, messagebox
 
 import kociemba
+
+class KeyTracker():
+    '''KeyTracker Class | Source: Jeffery from stack overflow (for tetsing)'''
+    key = ''
+    last_press_time = 0
+    last_release_time = 0
+
+    def __init__(self, on_press, on_release):
+        self.on_press = on_press
+        self.on_release = on_release
+
+    def track(self, key):
+        self.key = key
+        self.first_press = True
+
+    def is_pressed(self):
+        if self.first_press:
+            return time.time() - self.last_press_time < .1
+
+    def report_key_press(self, event):
+        if event.keysym == self.key:
+            if not self.is_pressed():
+                self.on_press()
+                print('reported key press')
+            self.last_press_time = time.time()
+
+    def report_key_release(self, event):
+        if event.keysym == self.key:
+            timer = threading.Timer(.1, self.report_key_release_callback, args=[event])
+            timer.start()
+
+    def report_key_release_callback(self, event):
+        if not self.is_pressed():
+            self.on_release()
+            print('reported key release')
+        self.last_release_time = time.time()
 
 class Cubestring():
     '''Cubestring Class'''
@@ -118,7 +155,7 @@ class Cubestring():
                 pass
 
 class TimeLog():
-    '''Log Class NOT COPMPLETED OR DUE'''
+    '''Instantiated with a log template. Recieves logs and submits them to entries.'''
 
     def __init__(self, template, app):
         self.template = template
@@ -154,7 +191,7 @@ class TimeLog():
             pass
 
 class App(tk.Tk):
-    '''App Class'''
+    '''CubeTools App Class'''
 
     def __init__(self):
         super().__init__()
@@ -298,25 +335,29 @@ class App(tk.Tk):
         Label(timer, textvariable=self.ao5, font = ('Times New Roman', 20)).pack(side=TOP)
         Label(timer, textvariable=self.ao12, font = ('Times New Roman', 20)).pack(side=TOP)
         
-        # Key recognition
-        def space_pressed(e):
-            if e.char == ' ':
-                if self.timer_started:
-                    # Submit time to log
-                    print(f'You finished the solve in {time.time() - self.starttime}s')
-                    self.log.submit_time(round(time.time() - self.starttime, 2))
+        self.timer_primed = False
+        self.timer_started = False
 
-                    self.timer_started = False
-                    self.timer_primed = False
+        def space_pressed():
+            if self.timer_started:
+                # End timer
+                self.timer_started = False
+                solve_time = round(time.time() - self.starttime, 2)
+                self.log.submit_time(solve_time)              
+            else:
+                self.timer_primed = True
 
-                    self.after(500)
-                else:
-                    self.timer_started = True
-                    print('timer started')
-                    self.start_timer()
+        def space_released():
+            if self.timer_primed:
+                self.timer_started = True
+                self.timer_primed = False
+                self.start_timer()
 
-        # Key bindings
-        self.bind('<space>', space_pressed)
+        # Remove key debouncing / pain
+        key_tracker = KeyTracker(space_pressed, space_released)
+        self.bind_all('<KeyPress>', key_tracker.report_key_press)
+        self.bind_all('<KeyRelease>', key_tracker.report_key_release)
+        key_tracker.track('space')
     
     def start_timer(self):
         self.starttime = time.time()
