@@ -1,14 +1,6 @@
 # !/usr/bin/env
 # -*- coding: utf-8 -*-
 
-'''
-- Deliverables not completed.
-- Will have deliverables for Milestone #2 done by calss on Wednesday
-- Issues generating a random valid state
-- Made cubestring viewer in google sheets... i guess thats an add-on
-'''
-
-import random
 import time
 import threading
  
@@ -20,6 +12,7 @@ import kociemba
 
 class KeyTracker():
     '''KeyTracker Class | Source: Jeffery from stack overflow (for tetsing)'''
+
     key = ''
     last_press_time = 0
     last_release_time = 0
@@ -40,7 +33,6 @@ class KeyTracker():
         if event.keysym == self.key:
             if not self.is_pressed():
                 self.on_press()
-                print('reported key press')
             self.last_press_time = time.time()
 
     def report_key_release(self, event):
@@ -51,117 +43,7 @@ class KeyTracker():
     def report_key_release_callback(self, event):
         if not self.is_pressed():
             self.on_release()
-            print('reported key release')
         self.last_release_time = time.time()
-
-class Cubestring():
-    '''Cubestring Class'''
-
-    faces = {
-            'U': 0,
-            'R': 1,
-            'F': 2,
-            'D': 3,
-            'L': 4,
-            'B': 5,
-        }
-    
-    orientation = {
-        'white': 'U',
-        'red': 'R',
-        'green': 'F',
-        'yellow': 'D',
-        'orange': 'L',
-        'blue': 'B'
-    }
-
-    def __init__(self, cubestring='', random_valid=False):
-        self.cubestring = cubestring
-
-        if random_valid == True:
-            self.generate_random_valid_cubestring()
-    
-    def generate_random_valid_cubestring(self):
-        faces = ['U', 'R', 'F', 'D', 'L', 'B']
-
-        corners = {
-            'c1': [('U', 1), ('L', 3), ('B', 7)],
-            'c2': [('U', 3), ('R', 1), ('B', 9)],
-            'c3': [('U', 7), ('L', 9), ('F', 1)],
-            'c4': [('U', 9), ('R', 7), ('F', 3)],
-            'c5': [('D', 1), ('R', 3), ('B', 3)],
-            'c6': [('D', 3), ('L', 1), ('B', 1)],
-            'c7': [('D', 7), ('R', 9), ('F', 9)],
-            'c8': [('D', 9), ('L', 7), ('F', 7)]
-        }
-
-        edges = {
-            'e1': [('U', 2), ('B', 8)],
-            'e2': [('U', 4), ('L', 6)],
-            'e3': [('U', 6), ('R', 4)],
-            'e4': [('U', 8), ('F', 2)],
-            'e5': [('B', 4), ('L', 2)],
-            'e6': [('B', 6), ('R', 2)],
-            'e7': [('F', 4), ('L', 8)],
-            'e8': [('F', 6), ('R', 8)],
-            'e9': [('D', 2), ('B', 2)],
-            'e10': [('D', 4), ('R', 6)],
-            'e11': [('D', 6), ('L', 4)],
-            'e12': [('D', 8), ('F', 8)]
-        }
-
-        # Repeat until a valid result
-        while True:
-            try:
-                cubestring = list(''.join(f'____{face}____' for face in Cubestring.faces))
-
-
-                remaining_corners = list(corners.keys())
-                # random.shuffle(remaining_corners)
-
-                # Assign corners to cubestring at random
-                for corner_pos in corners:
-                    # Get chosen corner info and isolate sticker colors
-                    chosen_corner = corners[remaining_corners.pop(0)]
-                    corner_colors = [sticker[0] for sticker in chosen_corner]
-
-                    # Change orientation
-                    random.shuffle(corner_colors)
-
-                    # Assign the stickers
-                    for i, sticker in enumerate(corners[corner_pos]):
-                        face, num = sticker
-                        cubestring[(faces[face] * 9) + num - 1] = corner_colors[i]
-
-                remaining_edges = list(edges.keys())
-                # random.shuffle(remaining_edges)
-
-                # Assign edges to cubestring at random
-                for i, edge_pos in enumerate(edges):
-                    # Get chosen edge info and isolate sticker colors
-                    chosen_edge = edges[remaining_edges.pop(0)]
-                    edge_colors = [sticker[0] for sticker in chosen_edge]
-
-                    # Change orientation
-                    random.shuffle(edge_colors)
-
-                    # Assign the stickers
-                    for i, sticker in enumerate(edges[edge_pos]):
-                        face, num = sticker
-
-                        cubestring[faces[face] * 9 + num - 1] = edge_colors[i]
-
-                str_cubestring = ''.join(sticker for sticker in cubestring)
-                
-                print(cubestring)
-                solve = kociemba.solve(cubestring)
-                print(solve)
-
-                if 'Error' not in solve:
-                    break
-
-            except ValueError:
-                pass
 
 class TimeLog():
     '''Instantiated with a log template. Recieves logs and submits them to entries.'''
@@ -192,12 +74,13 @@ class TimeLog():
         self.add_entry(len(self.entries)+1, time, ao5, ao12)
 
     def add_entry(self, *args):
+        # Attempt to add the submission to the log
         try:
             assert len(args) == len(self.template), 'entry must have the same length as the set template'
 
             self.entries.append(args)
         except AssertionError:
-            pass
+            return False
 
 class App(tk.Tk):
     '''CubeTools App Class'''
@@ -225,7 +108,7 @@ class App(tk.Tk):
         
     def init_main_buttons(self):
 
-        # buttons
+        # Main buttons
         buttons_frame = LabelFrame(self, height=20)
         buttons_frame.pack(side=TOP, fill=X)
 
@@ -308,7 +191,7 @@ class App(tk.Tk):
         def set_color(e):
             e.widget.configure(bg=self.active_color, activebackground=self.active_color)
 
-        def set_active_color(e):
+        def key_press(e):
             faces = {
                 'u': 'white',
                 'r': 'red',
@@ -318,11 +201,19 @@ class App(tk.Tk):
                 'b': 'blue'
             }
 
+            # Set the active color to the selected key | generate solution if g pressed
             if e.keysym in faces.keys():
                 self.active_color = faces[e.keysym]
             elif e.keysym == 'g':
                 self.cubestring = gen_cubestring()
-                print(kociemba.solve(cubestring=self.cubestring))
+
+                # Try to solve the solution
+                try:
+                    self.solution = kociemba.solve(cubestring=self.cubestring)
+                    messagebox.showinfo('Solution', self.solution)
+                except ValueError:
+                    messagebox.showwarning('Invalid cubestring!', 'The cubestring you entered was invalid! Please check again.')
+
 
         # Gen stickers
         stickers = {}
@@ -331,6 +222,7 @@ class App(tk.Tk):
             face.grid_propagate(False)
             for row in range(3):
                 for column in range(3):
+                    # Create the sticker
                     sticker_frame = Frame(face, width=50, height=50, bg='black')
                     sticker_frame.grid(row=row, column=column)
                     sticker_frame.pack_propagate(False)
@@ -340,18 +232,29 @@ class App(tk.Tk):
                     sticker.bind('<Button>', set_color)
 
                     stickers[face][row*3 + column] = sticker
-                    
-        self.bind('<Key>', set_active_color)
+
+        # Kind any key press to set the active color (to the key)                   
+        self.bind('<Key>', key_press)
 
         button = Button(cube_input, width=5, height=5, text='', command=lambda: set_color(button), bg='white', activebackground='white')
         button.grid()
 
         def gen_cubestring():
+            orientation = {
+                'white': 'U',
+                'red': 'R',
+                'green': 'F',
+                'yellow': 'D',
+                'orange': 'L',
+                'blue': 'B',
+            }
+
             # Gen cubestring via stickers
             cubestring = ''
             for face in stickers.values():
+                # Append face representation of sticker color to cubestring
                 for sticker in face:
-                    cubestring += Cubestring.orientation[sticker['background']]
+                    cubestring += orientation[sticker['background']]
             
             return cubestring
 
@@ -457,11 +360,14 @@ class App(tk.Tk):
                 self.timer_started = False
                 solve_time = round(time.time() - self.starttime, 2)
                 self.log.submit_time(solve_time)              
+                print(f'timer stopped | {self.log.entries[-1]}')
             else:
+                # Prime timer
                 self.timer_primed = True
 
         def space_released():
             if self.timer_primed:
+                # Start timer
                 self.timer_started = True
                 self.timer_primed = False
                 self.start_timer()
@@ -502,9 +408,6 @@ class App(tk.Tk):
 def main():
     app = App()
     mainloop()
-
-    # cubestring = Cubestring(random_valid=True)
-
   
 if __name__ == '__main__':
     main()
